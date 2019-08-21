@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="jquery-3.4.1.min.js"></script>
+</head>
+<body>
+    <div class="current">
+
+    </div>
+    <button>Start</button>
+    <script>
+        $('button').on("click", ()=> {
+            $.ajax({
+                url: 'http://api.apixu.com/v1/current.json?key=becbf22c865244e884681319192108&q=london',
+				type: 'GET',
+				success: function(data) {
+					console.log(data);
+				},
+				error: function(data) {
+					console.log('error');
+				}})
+        });
+    </script>
+</body>
+</html>
