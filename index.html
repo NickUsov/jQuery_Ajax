@@ -6,23 +6,143 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <script src="jquery-3.4.1.min.js"></script>
+    <style>
+        .current {
+            width: 600px;
+            height: 200px;
+            border: 1px solid gray;
+            border-radius: 10px;
+            display: none;
+            margin: 20px;
+        }
+        .top {
+            width: 100%;
+            height: 30%;
+            display: flex;
+        }
+        .bottom {
+            display: flex;
+        }
+        .city {
+            width: 60%;
+            padding-left: 20px;
+        }
+        .date {
+            padding: 30px 0 0 30px;
+            font-size: 18px;
+        }
+        .image {
+            width: 30%;
+            height: 100px;
+            padding: 30px 0 0 40px;
+            font-size: 18px;
+        }
+        .sky {
+            margin-left: 7px;
+        }
+        .temperature {
+            width: 30%;
+            font-size: 36px;
+            padding: 40px 0 0 20px;
+        }
+        .athm {
+            padding-top:30px;
+        }
+        p {
+            margin: 0;
+        }
+        .forecast {
+            display: none;
+            border: 1px solid gray;
+            border-radius: 10px;
+            width: 600px;
+            height: 200px;
+            margin: 0 20px;
+        }
+        .days {
+            width: 20%;
+            border-right: 1px solid gray;
+            text-align: center;
+        }
+        .days:last-child {
+            border: none;
+        }
+        .day {
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .forecast_temp {
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <div class="current">
-
-    </div>
+    <input type="text" id="input">
     <button>Start</button>
+    <div class="current">
+        <div class="top">
+            <div class="city">
+                <h1 class="city_txt">Odessa, Ukraine</h1>
+            </div>
+            <div class="date">
+                <p class="date_time">22.08.2019 </p>
+            </div>
+        </div>
+        <div class="bottom">
+            <div class="image">
+                <img src="#" alt="image" id="image">
+                <p class="sky"></p>
+            </div>
+            <div class="temperature"></div>
+            <div class="athm">
+                <p class="wind"></p>
+                <p class="precip"></p>
+                <p class="pressure"></p>
+            </div>
+        </div>
+    </div>
+    <div class="forecast">
+    </div>
     <script>
         $('button').on("click", ()=> {
+            event.preventDefault();
+            let search = $('#input').val();
+            let options = {weekday: 'long'};
             $.ajax({
-                url: 'http://api.apixu.com/v1/current.json?key=becbf22c865244e884681319192108&q=london',
+                url: `http://api.apixu.com/v1/forecast.json?key=becbf22c865244e884681319192108&q=${search}&days=6`,
 				type: 'GET',
 				success: function(data) {
-					console.log(data);
+                    $('.current').css("display","block");
+                    let location = data["location"];
+                    $('.city_txt').text(`${location.name}, ${location.country}`);
+                    let current_date = new Date(location.localtime);
+
+                    $('.date_time').text(`${current_date.getHours()}:${current_date.getMinutes()} ${current_date.getUTCDate()}.${current_date.getUTCMonth()}.${current_date.getUTCFullYear()}`);
+                    $('#image').attr("src",`http:${data.current.condition.icon}`);
+                    $('.sky').text(data.current.condition.text);
+                    $('.temperature').text(`${data.current.temp_c} \u00B0C`);
+                    $('.wind').text(`Wind: ${data.current.wind_kph} kph`);
+                    $('.precip').text(`Precip: ${data.current.precip_mm} mm`);
+                    $('.pressure').text(`Pressure: ${data.current.pressure_mb} mb`);
+                    console.log(data.forecast.forecastday);
+                    $('.forecast').css("display","flex");
+                    let str = '';
+                    for(let i = 1; i < 6; i ++) {
+                        let d = new Date(data.forecast.forecastday[i].date);
+                        let week_day = (Intl.DateTimeFormat('en-US', options).format(d)).substring(0, 3);
+                        str += `<div class="days">
+                                    <p class="day">${week_day}</p>
+                                    <p class="forecast_date">${d.getUTCDate()}.${d.getUTCMonth()}.${d.getUTCFullYear()}</p>
+                                    <img src="http:${data.forecast.forecastday[i].day.condition.icon}" alt="image" class="forecast_img">
+                                    <p class="forecast_temp">${data.forecast.forecastday[i].day.avgtemp_c}\u00B0C</p>
+                                </div>`;
+                    }
+                    $('.forecast').html(str);
 				},
 				error: function(data) {
-					console.log('error');
-				}})
+					console.log('error: '+data)
+				}
+            });
         });
     </script>
 </body>
